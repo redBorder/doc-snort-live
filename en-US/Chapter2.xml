@@ -10,10 +10,10 @@
 	<title>Installing redborder plugin</title>	
 	<section>
 		<title>Installing the redBorder package</title>
-		<para>Once Snort is properly installed and running (or if you already had it running), you need to proceed to install the redBorder-IPS-generic package. 
-		This package allows you to bind the Snort instance to the redBorder Live service, to enable rule management, and to configure barnyard2 to securely send the events to the cloud.</para> 
+		<para>Once Snort is properly installed and running (or if you already had it running), you need to proceed to <emphasis role="bold">install the redborder-IPS-generic package. </emphasis></para>
+		<para>This package allows you to bind the Snort instance to the redborder Live service, to enable rule management, and to configure barnyard2 to securely send the events to the cloud.</para> 
 		
-		<para>redBorder-IPS-generic requires the following additional packages in order to work:</para>
+		<para><literal>redBorder-IPS-generic</literal> requires the following additional packages in order to work:</para>
 		
 		
 			<itemizedlist mark="bullet">
@@ -38,8 +38,7 @@
 			
 			<para>As part of the installation process, a message appears asking you to include some lines in the snmpd.conf file of the <command>net-snmp</command> package:</para>
 			
-			<para><screen>
-				...
+			<para><screen>...
 INFO: Please, add these lines to your snmpd.conf file in order to allow get basic statistics:
 >>> /etc/snmp/snmpd.conf
 disk /
@@ -52,7 +51,7 @@ access redBorderGroup "" any noauth exact all none none
 			
 			<warning>
 				<title>Warning</title>
-				<para>These lines allow the installed redBorder agent to send basic system information to the redBorder Live service obtained using local snmp queries to the redBorder Community.</para>
+				<para>These lines allow the installed redborder agent to send basic system information to the redBorder Live service obtained using local snmp queries to the redborder Community.</para>
 			</warning>
 			
 			<para>Another two messages appear that you need to consider:</para>
@@ -61,22 +60,21 @@ access redBorderGroup "" any noauth exact all none none
 INFO: You must enable perfmonitor preprocessor to enable statistics. To enable it add the folowing line: preprocessor perfmonitor: time 300 file /var/log/snort/snort.stats pktcnt 10000
 			</screen></para>
 			
-			<para>This first message references the configuration of the Snort perfmonitor preprocessor.</para>
+			<para>This first message references <emphasis role="bold">the configuration of the Snort perfmonitor preprocessor.</emphasis></para>
 			
 			<para><screen>...
 Claim this IPS with the UUID: bd93699b-ff15-4d07-a0f2-f07da1a9ca81
 ...</screen></para>
 		
-		<para>The second message reports the unique UUID reserved for this installation, which will be used to identify the system in the redBorder Live environment.</para>
-		<para>You will be asked to prompt this UUID when registering the system in redBorder Live, and can view it at any time in the <command>/opt/rb/etc/rb-uuid</command> file:</para>
+		<para>The second message reports <emphasis role="bold">the unique UUID reserved for this installation,</emphasis> which will be used to identify the system in the redborder Live environment.</para>
+		<para>You will be asked to prompt this UUID when registering the system in redborder Live, and can view it at any time in the <command>/opt/rb/etc/rb-uuid</command> file:</para>
 		
 		<para><screen>[root@snortstd-centos6 ~]# cat /opt/rb/etc/rb-uuid 
 bd93699b-ff15-4d07-a0f2-f07da1a9ca81</screen></para>
 		
 		<para>Now we add the proposed changes into the <command>snmpd.conf</command> file:</para>
 		
-		<para><screen>
-			[root@snortstd-centos6 ~]# cat >> /etc/snmp/snmpd.conf &lt;&lt;EOF 
+		<para><screen>[root@snortstd-centos6 ~]# cat >> /etc/snmp/snmpd.conf &lt;&lt;EOF 
 com2sec redBorderUser localhost redBorder
 group redBorderGroup v1 redBorderUser
 group redBorderGroup v2c redBorderUser
@@ -87,24 +85,20 @@ EOF
 		
 		<para>To monitor the state of the file system (state, usage, mounting point, etc.) add the following line:</para>
 		
-		<para><screen>
-			[root@snortstd-centos6 ~]# cat >> /etc/snmp/snmpd.conf &lt;&lt;EOF
-disk /
-EOF
+		<para><screen>[root@snortstd-centos6 ~]# cat >> /etc/snmp/snmpd.conf &lt;&lt;EOF
+disk /EOF
 		</screen></para>
 		
 		<para>Finally, restart the snmpd service:</para>
 		
-		<para><screen>
-			[root@snortstd-centos6 ~]# /etc/init.d/snmpd restart
+		<para><screen>[root@snortstd-centos6 ~]# /etc/init.d/snmpd restart
 Stopping snmpd:                                            [  OK  ]
 Starting snmpd:                                            [  OK  ]
 		</screen></para>
 		
 		<para>Check that the configuration is correct by executing the following basic queries:</para>
 		
-		<para><screen>
-			[root@snortstd-centos6 ~]# snmpwalk -v2c -c redBorder localhost \
+		<para><screen>[root@snortstd-centos6 ~]# snmpwalk -v2c -c redBorder localhost \
 UCD-SNMP-MIB::systemStats
 
 UCD-SNMP-MIB::ssIndex.0 = INTEGER: 1
