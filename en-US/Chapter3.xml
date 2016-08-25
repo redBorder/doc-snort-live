@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "manual.ent">
+<!ENTITY PRODUCT "Documentation">
+<!ENTITY BOOKID "manual">
+<!ENTITY YEAR "2016">
+<!ENTITY HOLDER "Eneo Tecnología S.L. |">
+]>
+<chapter>
+	<title>Registering the sensor in redborder Live</title>	
+	<para>First, verify that rb_register service is stopped:</para>
+	
+	<para><screen>
+		[root@snortstd-centos6 ~]# /etc/init.d/rb-register status
+		rb_register is stopped
+	</screen></para>
+	
+	<para>Next, start the service to produce the first stage of the registration process:</para>
+	
+	<para><screen>
+		[root@snortstd-centos6 ~]# /etc/init.d/rb-register start
+Starting rb_register:                                      [  OK  ]
+Domain to connect: live.redorder.com
+Verify remote certificate: enabled
+Sensor UUID to claim: bd93699b-ff15-4d07-a0f2-f07da1a9ca81
+	</screen></para>
+	
+	<para>The system has registered the unique UUID and will wait until it is claimed by you. You can verify that the process has been carried out successfully by checking the system logs:</para>
+	
+	<para><screen>
+		[root@snortstd-centos6 ~]# tail -f /var/log/rb-register/current
+time="2016-05-10T11:06:38+02:00" level=info msg="Stored UUID on DB: 369516204340538230" 
+time="2016-05-10T11:06:38+02:00" level=info msg="Registered!" 
+time="2016-05-10T11:06:38+02:00" level=info msg="Requesting certificate" 
+time="2016-05-10T11:07:39+02:00" level=info msg="Claimed!" 
+time="2016-05-10T11:07:39+02:00" level=info msg="Chef called" 
+time="2016-05-10T11:07:39+02:00" level=info msg=Done 
+	</screen></para>
+	
+	<para>You can force the creation of a new UUID at any time by unbinding the sensor from redBorder Live using the following command:</para>
+	
+	<para><screen>
+		[root@snortstd-centos6 ~]# /opt/rb/bin/rb_disassociate_sensor.sh 
+Are you sure you want to disassociate this sensor from the manager? (y/N) y
+Stopping rb_register:                                      [  OK  ]
+Deleting /opt/rb/etc/chef/client.pem
+Deleting /opt/rb/etc/chef/client.rb
+Deleting /etc/cron.d/redborder
+Deleting /opt/rb/etc/sysconfig/barnyard2
+Deleting /opt/rb/etc/sid-msg.map
+Deleting /opt/rb/etc/barnyard2.conf
+Deleting /opt/rb/etc/rb-conf
+Deleting /opt/rb/etc/rb-conf-final.sh
+Starting rb_register:                                      [  OK  ]
+Sensor UUID to claim: 28e4df0f-4fd5-4fe2-9142-d4b92ea96e9d
+	</screen></para>
+	
+	<warning>
+		<title>Warning</title>
+		<para>This script unbinds the sensor, stops the rb_register service, creates a new UUID, and starts the rb_register service.</para>
+	</warning>
+	
+	
+	<para>You should use it only if one of the following occurs:</para>
+	
+	<itemizedlist mark="bullet">
+		<listitem>
+			<para>There was an error in the prior registration process and you can't claim the sensor for whatever reason</para>
+		</listitem>
+		<listitem>
+			<para>You want to have a new UUID</para>
+		</listitem>
+	</itemizedlist>
+	
+	<para>To claim the new sensor, you have to enter redBorder Live with your user and password, access the Sensors section, and select Claim sensor. 
+	You have one week to do so or the UUID will expire in the system and you will be required to create a new one.</para>
+	
+	<mediaobject>
+		<imageobject>
+			<imagedata scalefit="1" align="center" width="450" fileref="images/ch03_img001.png"/>
+		</imageobject>
+		<caption>
+			<para>Claim the sensor</para>
+		</caption>
+    </mediaobject>
+        
+        <para><emphasis role="bold">Introduce a descriptive name for the sensor and the UUID</emphasis> to identify it in redborder Live.</para>
+        <note>
+			<title>Note</title>
+			<para> Be careful when introducing the UUID, as you only have three attempts. If you enter it incorrectly three times, the UUID will be removed and you will have to create a new one. 
+			If this happens too many times, <emphasis>your account may be blocked.</emphasis></para>
+        </note>
+        
+    <mediaobject>
+		<imageobject>
+			<imagedata scalefit="1" align="center" width="450" fileref="images/ch03_img002.png"/>
+        </imageobject>
+		<caption>
+			<para>Introducing sensor name and UUID</para>
+		</caption>
+    </mediaobject>
+    
+    <para>When saving the data the sensor will be bound to redBorder Live with the current account.</para>
+        
+	<section>
+		<title>Sensor registered in redborder Live</title>
+		<para>The user can verify that the sensor has been properly bound to redborder Live by reviewing the system logs:</para>
+		
+		<para><screen>
+			[root@snortstd-centos6 ~]# tail -f /var/log/messages 
+Feb  2 16:43:51 snortstd rb_register[32025]: STATUS: VERIFYING
+Feb  2 16:44:51 snortstd rb_register[32025]: STATUS: VERIFYING
+Feb  2 16:45:51 snortstd rb_register[32025]: STATUS: CLAIMED
+Feb  2 16:45:51 snortstd rb_register[32025]: Saved certificate in: /opt/rb/etc/chef/client.pem
+		</screen></para>
+	
+		<para>The rb_register service goes from VERIFYING to CLAIMED and stores the certificate that will authorize the communications with redborder Live.</para>
+		<para>In redBorder Live the user can see a green circle in the Last Checked column of the Sensors section: this means that the sensor has been properly registered.
+		This column also indicates the time lapsed since the last sensor check.</para>
+		
+		<mediaobject>
+			<imageobject>
+				<imagedata scalefit="1" align="center" width="450" fileref="images/ch03_img003.png"/>
+			</imageobject>
+			<caption>
+				<para>Sensor claimed</para>
+			</caption>
+		</mediaobject>
+		
+		<para>From this point, you can configure your Snort sensor and assign its policies.</para>
+    
+    </section>
+    
+    <section>
+		<title>Basic Configuration</title>
+		<para>To edit the configuration of the sensor, you need to click on the Configuration icon, to the right of the row, and select Edit from the given options.</para>
+		
+		<mediaobject>
+			<imageobject>
+				<imagedata scalefit="1" align="center" width="450" fileref="images/ch02_img004.png"/>
+            </imageobject>
+			<caption>
+				<para>Edit sensor configuration</para>
+			</caption>
+        </mediaobject>
+        
+        <para>Now you access a basic configuration form to configure your Snort sensor. 
+        This configuration is very basic compared to what we enable when the sensor is our own Snort version, but gives the basic working points without interfering with your existing configuration.</para>
+        
+        <mediaobject>
+			<imageobject>
+				<imagedata scalefit="1" align="center" width="450" fileref="images/ch02_img005.png"/>
+            </imageobject>
+			<caption>
+				<para>Basic sensor configuration</para>
+			</caption>
+        </mediaobject>
+        
+        <note>
+			<title>Note</title>
+			<para>The system proposes a series of default values that are valid and in accordance with this guide, so it is not mandatory to change them.</para>
+			<para>If your environment is different in any way, you should introduce the relevant values in the form.</para>
+        </note>
+        
+        <para><emphasis role="bold">Configuring the security policies for the Snort sensor</emphasis></para>
+		<para>The last step is to configure the security policies for the Snort sensor. To do so, return to the Sensors menu, click on 
+		<literal>Configure</literal> and select the Signature Policies submenu.</para>
+		<para>Select the security policy you want to apply by clicking the Assign icon. Finally, to apply that policy to the sensor, click on the Apply Conf option that appears in the top right corner.
+		<emphasis role="bold">The policy applied will be marked in green.</emphasis></para>
+		
+		<mediaobject>
+			<imageobject>
+				<imagedata scalefit="1" align="center" width="450" fileref="images/ch02_img006.png"/>
+            </imageobject>
+			<caption>
+				<para>Configuring Security Policies</para>
+			</caption>
+        </mediaobject>
+		
+   </section>
+		
+</chapter>

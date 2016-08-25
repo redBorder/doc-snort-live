@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "manual.ent">
+<!ENTITY PRODUCT "Documentation">
+<!ENTITY BOOKID "manual">
+<!ENTITY YEAR "2016">
+<!ENTITY HOLDER "Eneo Tecnología S.L. |">
+]>
+<chapter>
+	<title>Installing redborder plugin</title>	
+	<section>
+		<title>Installing the redBorder package</title>
+		<para>Once Snort is properly installed and running (or if you already had it running), you need to proceed to install the redBorder-IPS-generic package. 
+		This package allows you to bind the Snort instance to the redBorder Live service, to enable rule management, and to configure barnyard2 to securely send the events to the cloud.</para> 
+		
+		<para>redBorder-IPS-generic requires the following additional packages in order to work:</para>
+		
+		
+			<itemizedlist mark="bullet">
+				<listitem>
+					<para>ruby</para>
+				</listitem>
+				<listitem>
+					<para>GeoIP</para>
+				</listitem>
+				<listitem>
+					<para>net-snmp</para>
+				</listitem>
+				<listitem>
+					<para>sharutils</para>
+				</listitem>
+				<listitem>
+					<para>Additional gems installed as part of the dependencies</para>
+				</listitem>
+			</itemizedlist>	
+			
+			<para><screen>[root@snortstd-centos6 ~]# yum install redBorder-IPS-generic</screen></para>	
+			
+			<para>As part of the installation process, a message appears asking you to include some lines in the snmpd.conf file of the <command>net-snmp</command> package:</para>
+			
+			<para><screen>
+				...
+INFO: Please, add these lines to your snmpd.conf file in order to allow get basic statistics:
+>>> /etc/snmp/snmpd.conf
+disk /
+com2sec redBorderUser localhost redBorder
+group redBorderGroup v1 redBorderUser
+group redBorderGroup v2c redBorderUser
+view all included .1 80
+access redBorderGroup "" any noauth exact all none none
+			</screen></para>
+			
+			<warning>
+				<title>Warning</title>
+				<para>These lines allow the installed redBorder agent to send basic system information to the redBorder Live service obtained using local snmp queries to the redBorder Community.</para>
+			</warning>
+			
+			<para>Another two messages appear that you need to consider:</para>
+			
+			<para><screen>...
+INFO: You must enable perfmonitor preprocessor to enable statistics. To enable it add the folowing line: preprocessor perfmonitor: time 300 file /var/log/snort/snort.stats pktcnt 10000
+			</screen></para>
+			
+			<para>This first message references the configuration of the Snort perfmonitor preprocessor.</para>
+			
+			<para><screen>...
+Claim this IPS with the UUID: bd93699b-ff15-4d07-a0f2-f07da1a9ca81
+...</screen></para>
+		
+		<para>The second message reports the unique UUID reserved for this installation, which will be used to identify the system in the redBorder Live environment.</para>
+		<para>You will be asked to prompt this UUID when registering the system in redBorder Live, and can view it at any time in the <command>/opt/rb/etc/rb-uuid</command> file:</para>
+		
+		<para><screen>[root@snortstd-centos6 ~]# cat /opt/rb/etc/rb-uuid 
+bd93699b-ff15-4d07-a0f2-f07da1a9ca81</screen></para>
+		
+		<para>Now we add the proposed changes into the <command>snmpd.conf</command> file:</para>
+		
+		<para><screen>
+			[root@snortstd-centos6 ~]# cat >> /etc/snmp/snmpd.conf &lt;&lt;EOF 
+com2sec redBorderUser localhost redBorder
+group redBorderGroup v1 redBorderUser
+group redBorderGroup v2c redBorderUser
+view all included .1 80
+access redBorderGroup "" any noauth exact all none none
+EOF
+		</screen></para>
+		
+		<para>To monitor the state of the file system (state, usage, mounting point, etc.) add the following line:</para>
+		
+		<para><screen>
+			[root@snortstd-centos6 ~]# cat >> /etc/snmp/snmpd.conf &lt;&lt;EOF
+disk /
+EOF
+		</screen></para>
+		
+		<para>Finally, restart the snmpd service:</para>
+		
+		<para><screen>
+			[root@snortstd-centos6 ~]# /etc/init.d/snmpd restart
+Stopping snmpd:                                            [  OK  ]
+Starting snmpd:                                            [  OK  ]
+		</screen></para>
+		
+		<para>Check that the configuration is correct by executing the following basic queries:</para>
+		
+		<para><screen>
+			[root@snortstd-centos6 ~]# snmpwalk -v2c -c redBorder localhost \
+UCD-SNMP-MIB::systemStats
+
+UCD-SNMP-MIB::ssIndex.0 = INTEGER: 1
+UCD-SNMP-MIB::ssErrorName.0 = STRING: systemStats
+UCD-SNMP-MIB::ssSwapIn.0 = INTEGER: 0 kB
+UCD-SNMP-MIB::ssSwapOut.0 = INTEGER: 0 kB
+UCD-SNMP-MIB::ssIOSent.0 = INTEGER: 4 blocks/s
+UCD-SNMP-MIB::ssIOReceive.0 = INTEGER: 0 blocks/s
+UCD-SNMP-MIB::ssSysInterrupts.0 = INTEGER: 17 interrupts/s
+UCD-SNMP-MIB::ssSysContext.0 = INTEGER: 58 switches/s
+UCD-SNMP-MIB::ssCpuUser.0 = INTEGER: 0
+UCD-SNMP-MIB::ssCpuSystem.0 = INTEGER: 0
+UCD-SNMP-MIB::ssCpuIdle.0 = INTEGER: 99
+UCD-SNMP-MIB::ssCpuRawUser.0 = Counter32: 6379
+UCD-SNMP-MIB::ssCpuRawNice.0 = Counter32: 1545
+UCD-SNMP-MIB::ssCpuRawSystem.0 = Counter32: 4131
+UCD-SNMP-MIB::ssCpuRawIdle.0 = Counter32: 8684393
+UCD-SNMP-MIB::ssCpuRawWait.0 = Counter32: 27199
+UCD-SNMP-MIB::ssCpuRawKernel.0 = Counter32: 0
+UCD-SNMP-MIB::ssCpuRawInterrupt.0 = Counter32: 1
+UCD-SNMP-MIB::ssIORawSent.0 = Counter32: 1720732
+UCD-SNMP-MIB::ssIORawReceived.0 = Counter32: 770644
+UCD-SNMP-MIB::ssRawInterrupts.0 = Counter32: 625495
+UCD-SNMP-MIB::ssRawContexts.0 = Counter32: 875982
+UCD-SNMP-MIB::ssCpuRawSoftIRQ.0 = Counter32: 73
+UCD-SNMP-MIB::ssRawSwapIn.0 = Counter32: 0
+UCD-SNMP-MIB::ssRawSwapOut.0 = Counter32: 0
+
+
+[root@snortstd-centos6 ~]# snmpwalk -v2c -c redBorder localhost \
+UCD-SNMP-MIB::dskEntry
+
+UCD-SNMP-MIB::dskIndex.1 = INTEGER: 1
+UCD-SNMP-MIB::dskPath.1 = STRING: /
+UCD-SNMP-MIB::dskDevice.1 = STRING: /dev/mapper/vg_snortstd-lv_root
+UCD-SNMP-MIB::dskMinimum.1 = INTEGER: 100000
+UCD-SNMP-MIB::dskMinPercent.1 = INTEGER: -1
+UCD-SNMP-MIB::dskTotal.1 = INTEGER: 14225776
+UCD-SNMP-MIB::dskAvail.1 = INTEGER: 11303996
+UCD-SNMP-MIB::dskUsed.1 = INTEGER: 2192488
+UCD-SNMP-MIB::dskPercent.1 = INTEGER: 16
+UCD-SNMP-MIB::dskPercentNode.1 = INTEGER: 6
+UCD-SNMP-MIB::dskTotalLow.1 = Gauge32: 14225776
+UCD-SNMP-MIB::dskTotalHigh.1 = Gauge32: 0
+UCD-SNMP-MIB::dskAvailLow.1 = Gauge32: 11303996
+UCD-SNMP-MIB::dskAvailHigh.1 = Gauge32: 0
+UCD-SNMP-MIB::dskUsedLow.1 = Gauge32: 2192488
+UCD-SNMP-MIB::dskUsedHigh.1 = Gauge32: 0
+UCD-SNMP-MIB::dskErrorFlag.1 = INTEGER: noError(0)
+UCD-SNMP-MIB::dskErrorMsg.1 = STRING:
+		</screen></para>
+		
+	</section>
+	
+		
+</chapter>
