@@ -1,0 +1,36 @@
+language: generic
+sudo: required
+dist: trusty
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y --no-install-recommends publican libxml2-utils
+notifications:
+  email: false
+
+matrix:
+  include:
+    - env: LANG="en-US" MAKE_TARGET_SUFFIX="us"
+
+script:
+  - xmllint --postvalid --noout ${LANG}/Chapter*.xml
+  - make pdf-${MAKE_TARGET_SUFFIX}
+  - make html-${MAKE_TARGET_SUFFIX}
+# No idea how pdf name has been generated!
+  - OUTPUT_PDF_NAME="$(cd tmp/${LANG}/pdf/; ls *.pdf)"
+  - OUTPUT_NAME="${OUTPUT_PDF_NAME%.pdf}"
+  - mv tmp/${LANG}/pdf/${OUTPUT_NAME}.pdf ${OUTPUT_NAME}.pdf;
+  - "(cd tmp/${LANG}; zip ${OUTPUT_NAME} -r html)"
+  - "(cd tmp/${LANG}; tar cvzpf ${OUTPUT_NAME}.tgz html/)"
+  - mv tmp/${LANG}/${OUTPUT_NAME}.{zip,tgz} .
+
+deploy:
+  provider: releases
+  api_key:
+    secure: AOpgJXHCwX6bAvLWUJGv2CsxTp1gDHxmAzww9+mucTppTJlKU28pvXEeHee49/flELVTHlgEVN0HyX7MaRkE/GKvDXN9yZX/+OIIP6LSTC5tEsc4hI2RtdOsmDJh5tlrVXzzxa7EZA2pbXTkwUt0Ls/Hi4tNMyR7dU1si9gfKO66Oi5jHgiRK1EH4+GZ7Lpn3vR3FnxkLEixD74jB72GuuHjOIIhdm0BtGXV+diBIo0PgWejUDky/+rOSYHqB+g6MCapcJlKTwLMEd7bQfiRyXC/U0ImiXIkGC9eIcXi2k9u4t19u1wAyqfuZrnVN39uUft6+hHeIi6jpQfmyqQd1uK7BKqAOlNfdzkBybWAZkvIzHXFNtTG7nO185IZ975wCwjTRc+El2hdCp5Dn6617ql0eLyoVk15Pc0Pat7/9yLLvsvmj1LLzNRNtKYJ/TqpdQpxxTu0xaj5B7jmPj8agTatgMPs4xvzlGOIWRRpZXAtAMiNk8DqzylTRHD3feumdvYelKWfXCvQHvSuFwtWBg4K6XEEbqXkFHvvkPiKPjFBb4SANQ3EUsP4j9kjdThJlPeLfpen/PM5ekL3ewEVRKiUxey2ExSt55P16aD0yJ3RrOcNC9DnEYhy4a+j7Ry1921GcFCmKDeN3k1WFcLC+btuxZFCU8PGf5aJRxy46f0=
+  file:
+    - ${OUTPUT_NAME}.pdf
+    - ${OUTPUT_NAME}.zip
+    - ${OUTPUT_NAME}.tgz
+
+  on:
+    tags: True

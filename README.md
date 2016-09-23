@@ -1,4 +1,8 @@
-# Snort redborder Live 
+# Snort redborder Live
+
+[![Download Snort live PDF](https://img.shields.io/badge/PDF--EN-SNORT--LIVE--v0.1-1--red.svg)](https://github.com/redBorder/doc-snort-live/releases/download/0.1-1/Snort_on_CentOs-1-Quick_installation_guide-en-US.pdf)
+[![Download Snort live version](https://img.shields.io/badge/html.tgz--EN-SNORT--LIVE--v0.1-1--red.svg)](https://github.com/redBorder/doc-snort-live/releases/download/0.1-1/Snort_on_CentOs-1-Quick_installation_guide-en-US.tgz)
+[![Download Snort live version](https://img.shields.io/badge/html.zip--EN-SNORT--LIVE--v0.1-1--red.svg)](https://github.com/redBorder/doc-snort-live/releases/download/0.1-1/Snort_on_CentOs-1-Quick_installation_guide-en-US.zip)
 
 [![logo](https://redborder.com/media/download/553)](https://redborder.com/trial)
 
